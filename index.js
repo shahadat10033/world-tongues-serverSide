@@ -27,6 +27,11 @@ async function run() {
     const classesDbCollection = client.db("classDB").collection("classes");
     const usersDbCollection = client.db("classDB").collection("loggedInUsers");
 
+    app.get("/loggedInUsers", async (req, res) => {
+      const result = await usersDbCollection.find().toArray();
+      res.send(result);
+    });
+
     app.get("/approvedClasses", async (req, res) => {
       const query = { status: "approved" };
 
