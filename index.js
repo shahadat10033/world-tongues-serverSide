@@ -26,6 +26,12 @@ async function run() {
 
     const classesDbCollection = client.db("classDB").collection("classes");
 
+    app.get("/approvedClasses", async (req, res) => {
+      const query = { status: "approved" };
+
+      const result = await classesDbCollection.find(query).toArray();
+      res.send(result);
+    });
     app.get("/popularClasses", async (req, res) => {
       const query = {};
       const options = {
