@@ -25,6 +25,7 @@ async function run() {
     await client.connect();
 
     const classesDbCollection = client.db("classDB").collection("classes");
+    const usersDbCollection = client.db("classDB").collection("loggedInUsers");
 
     app.get("/approvedClasses", async (req, res) => {
       const query = { status: "approved" };
@@ -45,6 +46,13 @@ async function run() {
     });
     app.get("/instructors", async (req, res) => {
       const result = await classesDbCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/loggedInUsers", async (req, res) => {
+      const user = req.body;
+
+      const result = await usersDbCollection.insertOne(user);
       res.send(result);
     });
 
