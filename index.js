@@ -9,7 +9,7 @@ app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.ddxd88y.mongodb.net/?retryWrites=true&w=majority`;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -28,7 +28,12 @@ async function run() {
     const usersDbCollection = client.db("classDB").collection("loggedInUsers");
 
     app.get("/loggedInUsers", async (req, res) => {
-      const result = await usersDbCollection.find().toArray();
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await usersDbCollection.find(query).toArray();
+
       res.send(result);
     });
 
@@ -62,6 +67,19 @@ async function run() {
         return res.send({ message: "user already exists" });
       }
       const result = await usersDbCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.patch("/loggedInUsers/admin/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersDbCollection.updateOne(filter, updateDoc);
+
       res.send(result);
     });
 
