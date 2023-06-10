@@ -62,6 +62,12 @@ async function run() {
       const result = await classesDbCollection.find().toArray();
       res.send(result);
     });
+    app.get("/singleClass/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await classesDbCollection.findOne(query);
+      res.send(result);
+    });
 
     app.post("/loggedInUsers", async (req, res) => {
       const user = req.body;
@@ -106,7 +112,32 @@ async function run() {
           status: "approved",
         },
       };
-      const result = await usersDbCollection.updateOne(filter, updateDoc);
+      const result = await classesDbCollection.updateOne(filter, updateDoc);
+
+      res.send(result);
+    });
+    app.patch("/allClasses/denied/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "denied",
+        },
+      };
+      const result = await classesDbCollection.updateOne(filter, updateDoc);
+
+      res.send(result);
+    });
+    app.patch("/allClasses/feedback/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: new ObjectId(id) };
+      const updatedClass = req.body;
+      const updateDoc = {
+        $set: {
+          feedback: updatedClass.feedback,
+        },
+      };
+      const result = await classesDbCollection.updateOne(filter, updateDoc);
 
       res.send(result);
     });
