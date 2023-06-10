@@ -37,6 +37,10 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/allClasses", async (req, res) => {
+      const result = await classesDbCollection.find().toArray();
+      res.send(result);
+    });
     app.get("/approvedClasses", async (req, res) => {
       const query = { status: "approved" };
 
