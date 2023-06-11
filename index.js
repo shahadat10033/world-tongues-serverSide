@@ -65,6 +65,10 @@ async function run() {
       const result = await classesDbCollection.find().toArray();
       res.send(result);
     });
+    app.get("/selectedClasses", async (req, res) => {
+      const result = await selectedClassesDbCollection.find().toArray();
+      res.send(result);
+    });
     app.get("/myClasses", async (req, res) => {
       let query = {};
       console.log(req.query?.instructorEmail);
@@ -107,9 +111,21 @@ async function run() {
       res.send(result);
     });
     app.post("/selectedClass", async (req, res) => {
-      const selectedClass = req.body;
-      const result = await selectedClassesDbCollection.insertOne(selectedClass);
-      res.send(result);
+      try {
+        const selectedClass = req.body;
+        const query = { _id: new ObjectId(selectedClass._id) };
+        const existingClass = await selectedClassesDbCollection.findOne(query);
+        if (existingClass) {
+          return res.send({ message: "class already selected" });
+        }
+        const result = await selectedClassesDbCollection.insertOne(
+          selectedClass
+        );
+        res.send(result);
+      } catch (error) {
+        console.error("Error occurred:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
     });
 
     app.patch("/loggedInUsers/admin/:id", async (req, res) => {
@@ -192,6 +208,12 @@ async function run() {
       };
       const result = await classesDbCollection.updateOne(filter, updateDoc);
 
+      res.send(result);
+    });
+    app.delete("/selectedClasses/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await selectedClassesDbCollection.deleteOne(query);
       res.send(result);
     });
 
