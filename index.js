@@ -62,6 +62,25 @@ async function run() {
       const result = await classesDbCollection.find().toArray();
       res.send(result);
     });
+    app.get("/myClasses", async (req, res) => {
+      let query = {};
+      console.log(req.query?.instructorEmail);
+      if (req.query?.instructorEmail) {
+        query = { instructorEmail: req.query.instructorEmail };
+      }
+
+      const result = await classesDbCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.get("/myClasses/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id),
+      };
+
+      const result = await classesDbCollection.find(query).toArray();
+      res.send(result);
+    });
     app.get("/singleClass/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -141,6 +160,26 @@ async function run() {
       const updateDoc = {
         $set: {
           feedback: updatedClass.feedback,
+        },
+      };
+      const result = await classesDbCollection.updateOne(filter, updateDoc);
+
+      res.send(result);
+    });
+    app.put("/myClasses/update/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: new ObjectId(id) };
+      const updatedClass = req.body;
+
+      const updateDoc = {
+        $set: {
+          className: updatedClass.className,
+          classImage: updatedClass.classImage,
+          instructorName: updatedClass.instructorName,
+          instructorEmail: updatedClass.instructorEmail,
+          instructorPhoto: updatedClass.instructorPhoto,
+          availableSeats: updatedClass.availableSeats,
+          price: updatedClass.price,
         },
       };
       const result = await classesDbCollection.updateOne(filter, updateDoc);
