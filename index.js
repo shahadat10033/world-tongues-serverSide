@@ -2,13 +2,12 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 
+const port = process.env.PORT || 5000;
 // middleware
 app.use(cors());
 app.use(express.json());
-
-const port = process.env.PORT || 5000;
-
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.ddxd88y.mongodb.net/?retryWrites=true&w=majority`;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -29,6 +28,7 @@ async function run() {
       .db("classDB")
       .collection("selectedClasses");
     const usersDbCollection = client.db("classDB").collection("loggedInUsers");
+    const paymentDbCollection = client.db("classDB").collection("payments");
 
     app.get("/loggedInUsers", async (req, res) => {
       let query = {};
@@ -67,6 +67,10 @@ async function run() {
     });
     app.get("/selectedClasses", async (req, res) => {
       const result = await selectedClassesDbCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/payments", async (req, res) => {
+      const result = await paymentDbCollection.find().toArray();
       res.send(result);
     });
     app.get("/myClasses", async (req, res) => {
@@ -126,6 +130,26 @@ async function run() {
         console.error("Error occurred:", error);
         res.status(500).send({ message: "Internal server error" });
       }
+    });
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = price * 100;
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+    app.post("/payments", async (req, res) => {
+      const payment = req.body;
+      const result = await paymentDbCollection.insertOne(payment);
+      res.send(result);
     });
 
     app.patch("/loggedInUsers/admin/:id", async (req, res) => {
@@ -212,8 +236,10 @@ async function run() {
     });
     app.delete("/selectedClasses/:id", async (req, res) => {
       const id = req.params.id;
+      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await selectedClassesDbCollection.deleteOne(query);
+      console.log(result);
       res.send(result);
     });
 
