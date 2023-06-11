@@ -25,6 +25,9 @@ async function run() {
     await client.connect();
 
     const classesDbCollection = client.db("classDB").collection("classes");
+    const selectedClassesDbCollection = client
+      .db("classDB")
+      .collection("selectedClasses");
     const usersDbCollection = client.db("classDB").collection("loggedInUsers");
 
     app.get("/loggedInUsers", async (req, res) => {
@@ -101,6 +104,11 @@ async function run() {
     app.post("/addClass", async (req, res) => {
       const addClass = req.body;
       const result = await classesDbCollection.insertOne(addClass);
+      res.send(result);
+    });
+    app.post("/selectedClass", async (req, res) => {
+      const selectedClass = req.body;
+      const result = await selectedClassesDbCollection.insertOne(selectedClass);
       res.send(result);
     });
 
