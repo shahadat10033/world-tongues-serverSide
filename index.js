@@ -79,6 +79,11 @@ async function run() {
       const result = await usersDbCollection.insertOne(user);
       res.send(result);
     });
+    app.post("/addClass", async (req, res) => {
+      const addClass = req.body;
+      const result = await classesDbCollection.insertOne(addClass);
+      res.send(result);
+    });
 
     app.patch("/loggedInUsers/admin/:id", async (req, res) => {
       const id = req.params;
@@ -128,10 +133,11 @@ async function run() {
 
       res.send(result);
     });
-    app.patch("/allClasses/feedback/:id", async (req, res) => {
+    app.put("/allClasses/feedback/:id", async (req, res) => {
       const id = req.params;
       const filter = { _id: new ObjectId(id) };
       const updatedClass = req.body;
+      console.log(updatedClass);
       const updateDoc = {
         $set: {
           feedback: updatedClass.feedback,
