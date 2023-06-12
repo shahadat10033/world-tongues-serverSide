@@ -29,6 +29,7 @@ async function run() {
       .collection("selectedClasses");
     const usersDbCollection = client.db("classDB").collection("loggedInUsers");
     const paymentDbCollection = client.db("classDB").collection("payments");
+    const enrollDbCollection = client.db("classDB").collection("enrollClass");
 
     app.get("/loggedInUsers", async (req, res) => {
       let query = {};
@@ -65,12 +66,23 @@ async function run() {
       const result = await classesDbCollection.find().toArray();
       res.send(result);
     });
-    app.get("/selectedClasses", async (req, res) => {
-      const result = await selectedClassesDbCollection.find().toArray();
+    app.get("/selectedClasses/:userEmail", async (req, res) => {
+      const userEmail = req.params.userEmail;
+
+      const query = { userEmail: userEmail };
+
+      const result = await selectedClassesDbCollection.find(query).toArray();
       res.send(result);
     });
-    app.get("/payments", async (req, res) => {
-      const result = await paymentDbCollection.find().toArray();
+    app.get("/payments/:userEmail", async (req, res) => {
+      const userEmail = req.params.userEmail;
+
+      const query = { userEmail: userEmail };
+      const options = {
+        sort: { date: -1 },
+      };
+      const result = await paymentDbCollection.find(query, options).toArray();
+
       res.send(result);
     });
     app.get("/myClasses", async (req, res) => {
@@ -99,6 +111,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/enrollClass/:userEmail", async (req, res) => {
+      const userEmail = req.params.userEmail;
+
+      const query = { userEmail: userEmail };
+
+      const result = await enrollDbCollection.find(query).toArray();
+      res.send(result);
+    });
+
     app.post("/loggedInUsers", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -112,6 +133,11 @@ async function run() {
     app.post("/addClass", async (req, res) => {
       const addClass = req.body;
       const result = await classesDbCollection.insertOne(addClass);
+      res.send(result);
+    });
+    app.post("/enrollClass", async (req, res) => {
+      const enrollClass = req.body;
+      const result = await enrollDbCollection.insertOne(enrollClass);
       res.send(result);
     });
     app.post("/selectedClass", async (req, res) => {
@@ -234,10 +260,27 @@ async function run() {
 
       res.send(result);
     });
+    app.put("/singleClasses/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: new ObjectId(id) };
+      const updatedClass = req.body;
+      console.log(updatedClass);
+      const updateDoc = {
+        $set: {
+          availableSeats: parseInt(updatedClass.availableSeats) - 1,
+          students: parseInt(updatedClass.students) + 1,
+        },
+      };
+
+      const result = await classesDbCollection.updateOne(filter, updateDoc);
+
+      res.send(result);
+      // res.send(result2);
+    });
     app.delete("/selectedClasses/:id", async (req, res) => {
       const id = req.params.id;
       console.log(id);
-      const query = { _id: new ObjectId(id) };
+      const query = { _id: id };
       const result = await selectedClassesDbCollection.deleteOne(query);
       console.log(result);
       res.send(result);
